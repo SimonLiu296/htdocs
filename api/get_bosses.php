@@ -10,33 +10,26 @@ require_once '../config/database.php';
 header('Content-Type: application/json');
 
 try {
-    // 获取搜索关键词
-    $search = isset($_GET['search']) ? trim($_GET['search']) : '';
+    // 获取所有老板及其送心账号数量
+    $sql = "SELECT b.id, b.name, b.created_at, 
+            COUNT(hr.id) as account_count
+            FROM bosses b
+            LEFT JOIN heart_relations hr ON b.id = hr.boss_id
+            GROUP BY b.id
+            ORDER BY b.created_at DESC";
     
-    // 构建SQL查询
-    $sql = "SELECT * FROM bosses";
-    if ($search) {
-        $sql .= " WHERE name LIKE :search";
-    }
-    $sql .= " ORDER BY name";
-    
-    $stmt = $pdo->prepare($sql);
-    if ($search) {
-        $stmt->bindValue(':search', "%$search%", PDO::PARAM_STR);
-    }
-    $stmt->execute();
+    $stmt = $pdo->query($sql);
     $bosses = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     echo json_encode([
         'code' => 0,
-        'msg' => '',
+        'msg' => '获取成功',
         'data' => $bosses
     ]);
 } catch(PDOException $e) {
     echo json_encode([
         'code' => 1,
-        'msg' => '获取数据失败',
-        'data' => []
+        'msg' => '获取失败：' . $e->getMessage()
     ]);
 }
 ?> 

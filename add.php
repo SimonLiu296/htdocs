@@ -17,6 +17,15 @@ require_once 'config/database.php';
         .layui-card {
             margin: 15px;
         }
+        .layui-form-item {
+            margin-bottom: 25px;
+        }
+        .layui-form-label {
+            width: 100px;
+        }
+        .layui-input-block {
+            margin-left: 130px;
+        }
     </style>
 </head>
 <body>
@@ -52,23 +61,31 @@ require_once 'config/database.php';
                 $.ajax({
                     url: 'api/add_account.php',
                     type: 'POST',
+                    dataType: 'json',
                     data: data.field,
                     success: function(res){
                         if(res.code === 0){
-                            layer.msg('保存成功');
-                            // 记录操作日志
-                            $.ajax({
-                                url: 'api/add_log.php',
-                                type: 'POST',
-                                data: {
-                                    operation_type: '添加',
-                                    operation_detail: '添加新账号：' + data.field.remark,
-                                    operator: '<?php echo $_SESSION['username']; ?>'
-                                }
+                            layer.msg('保存成功', {
+                                icon: 1,
+                                time: 1500
+                            }, function(){
+                                // 重置表单
+                                $('form')[0].reset();
+                                form.render();
                             });
                         } else {
-                            layer.msg('保存失败：' + res.msg);
+                            layer.msg(res.msg, {
+                                icon: 2,
+                                time: 2000
+                            });
                         }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('请求失败:', xhr.responseText);
+                        layer.msg('请求失败：' + error, {
+                            icon: 2,
+                            time: 2000
+                        });
                     }
                 });
                 return false;

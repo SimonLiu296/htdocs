@@ -9,6 +9,9 @@ require_once 'config/database.php';
 // 获取老板总数
 $stmt = $pdo->query("SELECT COUNT(*) FROM bosses");
 $total_bosses = $stmt->fetchColumn();
+
+// 获取URL中的boss_id参数
+$boss_id = isset($_GET['boss_id']) ? intval($_GET['boss_id']) : 0;
 ?>
 <!DOCTYPE html>
 <html>
@@ -182,6 +185,7 @@ $total_bosses = $stmt->fetchColumn();
             var layer = layui.layer;
             var element = layui.element;
             var form = layui.form;
+            var boss_id = <?php echo $boss_id; ?>;
 
             // 获取送心统计
             function loadTotalHearts() {
@@ -242,70 +246,56 @@ $total_bosses = $stmt->fetchColumn();
                             );
                         });
                         form.render('select');
+
+                        // 如果URL中有boss_id参数，自动选择对应的老板
+                        if (boss_id > 0) {
+                            selectElem.val(boss_id);
+                            form.render('select');
+                            // 切换到老板管理标签页
+                            element.tabChange('docDemoTabBrief', '1');
+                            // 加载老板的账号列表
+                            loadBossAccounts(boss_id);
+                        }
                     } else if(res.code === 1 && res.msg === '未登录') {
                         layer.msg('登录已过期，请重新登录');
                         setTimeout(function() {
                             top.location.href = '/login.php';
                         }, 1500);
-                    } else {
-                        layer.msg('获取老板列表失败：' + (res.msg || '未知错误'));
                     }
-                }).fail(function(xhr, status, error) {
-                    layer.msg('请求失败：' + error);
                 });
             }
 
-            // 加载老板的送心账号
+            // 加载老板的账号列表
             function loadBossAccounts(bossId) {
                 table.render({
                     elem: '#bossAccountsTable',
-                    url: 'api/get_boss_accounts.php',
-                    where: { boss_id: bossId },
+                    url: 'api/get_boss_accounts.php?boss_id=' + bossId,
                     page: true,
                     cols: [[
                         {field: 'account_remark', title: '账号备注', width: '50%'},
-                        {field: 'heart_count', title: '送心次数', width: '25%', sort: true},
-                        {field: 'last_heart_time', title: '最后送心时间', width: '25%', sort: true}
+                        {field: 'heart_count', title: '送心次数', width: '25%'},
+                        {field: 'last_heart_time', title: '最近送心时间', width: '25%', templet: function(d){
+                            return d.last_heart_time ? new Date(d.last_heart_time).toLocaleString() : '-';
+                        }}
                     ]],
                     height: 'full-200',
                     limit: 10,
-                    limits: [10, 20, 30],
-                    done: function(res) {
-                        if(res.code === 1) {
-                            if(res.msg === '未登录') {
-                                layer.msg('登录已过期，请重新登录');
-                                setTimeout(function() {
-                                    top.location.href = '/login.php';
-                                }, 1500);
-                            } else {
-                                layer.msg(res.msg || '获取数据失败');
-                            }
-                        }
-                    }
+                    limits: [10, 20, 30]
                 });
             }
 
-            // 监听Tab切换
-            element.on('tab(docDemoTabBrief)', function(data){
-                if(data.index === 1) {
-                    initBossSelect();
-                }
-            });
-
-            // 监听老板选择
+            // 监听老板选择变化
             form.on('select(bossSelect)', function(data){
                 if(data.value) {
                     loadBossAccounts(data.value);
-                } else {
-                    // 清空表格
-                    table.reload('bossAccountsTable', {
-                        data: []
-                    });
                 }
             });
 
-            // 页面加载时获取送心总数
-            loadTotalHearts();
+            // 页面加载完成后初始化
+            $(document).ready(function(){
+                loadTotalHearts();
+                initBossSelect();
+            });
         });
     </script>
 </body>

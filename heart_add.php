@@ -134,24 +134,37 @@ require_once 'config/database.php';
                 $.ajax({
                     url: 'api/add_heart_relation.php',
                     type: 'POST',
+                    dataType: 'json',
+                    contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
                     data: {
                         boss_name: data.field.boss_name,
-                        account_ids: selectedAccounts
+                        account_ids: JSON.stringify(selectedAccounts)
                     },
                     success: function(res){
                         if(res.code === 0){
-                            layer.msg('保存成功');
-                            // 重置表单
-                            $('form')[0].reset();
-                            if (accountSelect) {
-                                accountSelect.setValue([]);
-                            }
+                            layer.msg('保存成功', {
+                                icon: 1,
+                                time: 1500
+                            }, function(){
+                                // 重置表单
+                                $('form')[0].reset();
+                                if (accountSelect) {
+                                    accountSelect.setValue([]);
+                                }
+                            });
                         } else {
-                            layer.msg('保存失败：' + res.msg);
+                            layer.msg(res.msg, {
+                                icon: 2,
+                                time: 2000
+                            });
                         }
                     },
                     error: function(xhr, status, error) {
-                        layer.msg('请求失败：' + error);
+                        console.error('请求失败:', xhr.responseText);
+                        layer.msg('请求失败：' + (xhr.responseText || error), {
+                            icon: 2,
+                            time: 2000
+                        });
                     }
                 });
                 return false;

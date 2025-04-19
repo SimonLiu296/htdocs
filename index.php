@@ -158,6 +158,7 @@ if (!isset($_SESSION['logged_in'])) {
                         <dl class="layui-nav-child">
                             <dd><a href="heart_view.php" target="mainFrame"><i class="layui-icon layui-icon-search"></i>&ensp;送心查看</a></dd>
                             <dd><a href="heart_add.php" target="mainFrame"><i class="layui-icon layui-icon-add-1"></i>&ensp;送心添加</a></dd>
+                            <dd><a href="boss_list.php" target="mainFrame"><i class="layui-icon layui-icon-user"></i>&ensp;老板一览</a></dd>
                         </dl>
                     </li>
                     <li class="layui-nav-item">
